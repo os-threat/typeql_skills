@@ -11,14 +11,14 @@ This repository contains two TypeQL skill packages with different goals:
 
 - Main file: `skills/typedb/skill.md`
 - Source: [CaliLuke TypeDB skill](https://github.com/CaliLuke/skills/blob/main/skills/typedb/SKILL.md)
-- Generation instruction: `.generate/copy_caliluke_skill.md`
+- Generation instruction: `.generate/generate_from_typeql_docs.md` (single generator for both packs)
 - Purpose: single-file, dense, practical reference
 
 ### 2) Official-docs generated pack (`skills/typeql_docs`)
 
 - Main file: `skills/typeql_docs/skill.md`
 - Entry README: `skills/typeql_docs/README.md`
-- Generation instruction: `.generate/generate_From_typeql_docs.md`
+- Generation instruction: `.generate/generate_from_typeql_docs.md`
 - Purpose: quick-core plus deep references with stronger structure, navigation, and maintainability
 
 ## How They Compare
@@ -40,5 +40,6 @@ This repository contains two TypeQL skill packages with different goals:
 
 ## Regeneration
 
-- Refresh the baseline copy with `.generate/copy_caliluke_skill.md`.
-- Regenerate the hardened official-docs pack with `.generate/generate_From_typeql_docs.md`.
+- Run `.generate/generate_from_typeql_docs.md` to generate both:
+  - the baseline copy in `skills/typedb`
+  - the hardened official-docs pack in `skills/typeql_docs`

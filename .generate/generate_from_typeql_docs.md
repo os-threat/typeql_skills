@@ -1,8 +1,10 @@
 # Generate Hardened TypeQL Skill Pack (from Official Docs)
 
-Read the official TypeDB/TypeQL docs listed below and generate a hardened, production-grade skill pack in `skills/typeql_docs/`.
+First you must copy skill file from https://github.com/CaliLuke/skills/blob/main/skills/typedb/SKILL.md to the file `skills\typedb\skill.md` in the skills folder.
 
-Your output must be better than `skills/typedb/skill.md` in:
+The, read the official TypeDB/TypeQL docs listed below and generate a hardened, production-grade skill pack in `skills/typeql_docs/`.
+
+Your output must be better than the copied document in `skills/typedb/skill.md` in:
 
 - practical usability
 - completeness of coverage
