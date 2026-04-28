@@ -1,44 +1,173 @@
-# TypeQL Guides (Deep Reference)
+# TypeQL Guides (Detailed Practical Reference)
 
-## Read Data
+This file tracks the guide-oriented workflow: read, write, pipelines, debug, optimize, SQL translation.
 
-- Start with `match` and constrain types immediately.
-- Keep relation patterns role-explicit for readability and correctness.
-- Shape output with `fetch`; avoid over-returning unneeded bindings.
-- Add `select` when you need variable-level control before projection.
+How to use this file: start with the workflow section closest to your task, copy a baseline pattern, then adapt variable names, role labels, and constraints to your schema.
 
-## Insert / Update Data
+## Mini TOC
 
-- `insert` creates new facts from explicit patterns.
-- `update` mutates matched bindings; treat it as "match then apply".
-- `delete` removes matched facts; narrow matching aggressively.
-- `put` is the idempotent "ensure exists" style primitive.
+- Read Data
+- Insert / Update / Delete / Put
+- Advanced Pipelines
+- Debugging Playbook
+- Optimization Playbook
+- SQL vs TypeQL Translation Cheatsheet
 
-## Advanced Pipelines
+## 1) Read Data
 
-- Pipelines are composable stages: match -> transform/filter -> mutate/fetch.
-- Stage order matters for both correctness and performance.
-- Keep narrowing stages early; shape and aggregate later.
+### 1.1 Baseline read pattern
 
-## Debugging TypeQL
+```typeql
+match
+  $p isa person, has name $name;
+fetch {
+  "name": $name
+};
+```
 
-- Verify each variable has at least one binding-producing clause.
-- Isolate failing subpatterns by temporary minimization.
-- Confirm relation role names and subtype assumptions.
-- Check whether optional/negation changed expected cardinality.
-- Check comparison/value expressions for type mismatches.
+### 1.2 Read by relation roles
 
-## Optimizing TypeQL
+```typeql
+match
+  $c isa company, has name "Acme";
+  (employer: $c, employee: $p) isa employment;
+  $p has name $employee_name;
+fetch {
+  "employee": $employee_name
+};
+```
 
-- Prefer high-selectivity constraints early.
-- Avoid unconstrained fanout variables.
-- Use `distinct` and pagination strategically on broad traversals.
-- Avoid building huge intermediate sets before reductions.
-- Factor repeated logic into functions for consistency and maintainability.
+### 1.3 Read with stream controls
 
-## SQL vs TypeQL
+```typeql
+match
+  $p isa person, has joined_at $ts, has name $n;
+sort $ts desc;
+offset 0;
+limit 50;
+fetch {
+  "name": $n,
+  "joined_at": $ts
+};
+```
 
-- TypeQL models semantics first; SQL models normalized row sets first.
-- Joins become shared variables in declarative graph-like patterns.
-- Rich domain constraints can move into schema rather than app code.
-- N-ary relation semantics are first-class, not workaround tables.
+## 2) Insert / Update / Delete / Put
+
+### 2.1 Insert new instances
+
+```typeql
+insert
+  $p isa person, has email "alice@example.com", has name "Alice";
+```
+
+### 2.2 Insert with pre-match linkage
+
+```typeql
+match
+  $p isa person, has email "alice@example.com";
+  $c isa company, has name "Acme";
+insert
+  (employee: $p, employer: $c) isa employment;
+```
+
+### 2.3 Update matched facts
+
+```typeql
+match
+  $p isa person, has email "alice@example.com";
+update
+  $p has status "inactive";
+```
+
+### 2.4 Delete narrowly
+
+```typeql
+match
+  $p isa person, has email "alice@example.com", has nickname $nick;
+delete
+  $p has $nick;
+```
+
+### 2.5 Idempotent writes with put
+
+```typeql
+put
+  $p isa person, has email "alice@example.com", has name "Alice";
+```
+
+## 3) Advanced Pipelines
+
+Key idea: use early stages to constrain cardinality, late stages to shape output.
+
+```typeql
+match
+  $p isa person, has status $s, has name $n;
+  { $s == "active"; } or { $s == "trial"; };
+select $p, $n;
+distinct;
+sort $n asc;
+limit 100;
+fetch {
+  "name": $n
+};
+```
+
+## 4) Debugging Playbook
+
+### 4.1 Bisect a failing match
+
+```typeql
+match
+  $p isa person, has name $n;
+  # (employee: $p, employer: $c) isa employment;
+  # $c has name "Acme";
+reduce
+  $count = count;
+```
+
+If count > 0, commented region likely contains the issue.
+
+### 4.2 Check role correctness
+
+```typeql
+# If schema says employment relates employer and employee:
+match
+  (employee: $p, employer: $c) isa employment;
+```
+
+Typos or wrong role labels are common root causes.
+
+### 4.3 Check variable grounding in logical branches
+
+```typeql
+# Bad: $c may be unbound
+match
+  $p isa person;
+  { (employee: $p, employer: $c) isa employment; } or { $p has status "freelancer"; };
+  not { $c has name "BadCorp"; };
+```
+
+Fix by binding `$c` outside branch if needed downstream.
+
+## 5) Optimization Playbook
+
+- Add type + selective value constraints first.
+- Avoid unconnected variable families (Cartesian growth).
+- Use `select` to drop unused vars before heavy `fetch`.
+- Use deterministic pagination for large scans.
+- Reduce branch breadth in `or` where possible.
+- Favor reusable functions for repeated heavy subpatterns.
+
+## 6) SQL vs TypeQL Translation Cheatsheet
+
+- SQL `JOIN` -> variable co-binding / relation pattern in `match`.
+- SQL `WHERE` -> comparison + pattern constraints.
+- SQL `GROUP BY` + aggregates -> `reduce ... groupby`.
+- SQL projection -> `fetch`.
+- SQL idempotent merge/upsert workflows -> `put` patterns.
+
+## Common mistakes in this section
+
+- Treating guide workflows as strict syntax rules instead of adaptable patterns.
+- Running write patterns without validating candidate matches first.
+- Translating SQL joins as disconnected variables instead of shared bindings.

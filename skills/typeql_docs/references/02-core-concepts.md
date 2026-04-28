@@ -1,54 +1,121 @@
-# TypeQL Core Concepts (Deep Reference)
+# TypeQL Core Concepts (Detailed)
 
-## Entities, Relations, Attributes
+How to use this file: use it to validate modeling decisions and query reasoning before implementing or debugging syntax-level details.
 
-- **Entity**: identity-bearing concept instance.
-- **Relation**: association instance with role semantics.
-- **Attribute**: typed value-bearing instance.
-- Model meaning in relations and roles, not in ad-hoc attribute blobs.
+## Mini TOC
 
-## Constraining Data
+- Data Model Primitives
+- Constraints as First-Class Semantics
+- Schema vs Data Separation
+- Variables and Binding Semantics
+- Pattern Semantics
+- Clause Semantics
+- Queries as Functions
+- Invalid Pattern Families
+- Glossary
 
-- Use statement-level and annotation constraints to enforce quality.
-- Typical dimensions: ownership, role-playing validity, value domain limits, uniqueness.
-- Keep constraints near schema definitions to centralize invariants.
+## 1) Data Model Primitives
 
-## Schema and Data
+- **Entity**: independent concept identity (for example, person, company).
+- **Relation**: semantic connection with roles (for example, employment with employer/employee).
+- **Attribute**: typed value concept (for example, email, created_at).
 
-- Schema defines permissible structure and constraints.
-- Data must conform to schema; schema evolution should be explicit and reviewed.
-- Use `redefine` for deliberate shape change instead of silent drift.
+Design heuristic:
 
-## Query Variables and Patterns
+- If something has standalone identity -> entity.
+- If something describes a connection among participants -> relation.
+- If something is a value with a domain/type -> attribute.
 
-- Variables are co-binding anchors across patterns.
-- Conjunctions tighten matches.
-- Disjunctions broaden matches.
-- Negations exclude matches; use with clear grounding.
-- Optionals preserve partial bindings when some facts are absent.
+## 2) Constraints as First-Class Semantics
 
-## Query Clauses
+Constraints should be pushed into schema whenever possible:
 
-- Build from strict matching into transformation/projection/mutation.
-- Keep clause intent obvious: discovery, filtering, mutation, shaping.
+- Ownership constraints (`owns`)
+- Role participation constraints (`plays`, `relates`)
+- Value-domain constraints (`@range`, `@regex`, `@values`)
+- Identity/uniqueness constraints (`@key`, `@unique`, `@subkey`)
+- Cardinality and independence controls (`@card`, `@independent`, `@distinct`)
 
-## Queries as Functions
+This reduces duplicated validation in application code.
 
-- Encapsulate repeated query logic.
-- Prefer stable inputs/outputs over hidden assumptions.
-- Use stream functions for set-like outputs and scalar for computed singular values.
+## 3) Schema vs Data Separation
 
-## Invalid Patterns (Common Failure Modes)
+- **Schema layer**: types, inheritance, capabilities, constraints.
+- **Data layer**: concrete instances conforming to schema.
 
-- Unbound variables used in downstream clauses.
-- Contradictory type/value constraints.
-- Role usage incompatible with relation declaration.
-- Unsupported pattern nesting or malformed negation/optional combinations.
+Evolution commands:
 
-## Glossary (Operational)
+- `define`: introduce schema
+- `redefine`: modify existing schema behavior
+- `undefine`: remove schema behavior/types
 
-- **Binding**: concrete assignment to a variable.
-- **Pattern**: logical condition over variables.
-- **Pipeline**: ordered query stages.
-- **Projection**: selected/output subset and shape.
-- **Cardinality**: count of returned bindings/results.
+## 4) Variables and Binding Semantics
+
+Variables bind concepts/values and become the "join keys" of TypeQL.
+
+```typeql
+match
+  $p isa person;
+  (employee: $p, employer: $c) isa employment;
+  $c has name "Acme";
+```
+
+`$p` and `$c` are bound through relation participation, not through foreign-key fields.
+
+## 5) Pattern Semantics
+
+### Conjunction
+
+Multiple statements in `match` are conjunctive constraints over the same binding set.
+
+### Disjunction (`or`)
+
+Any branch can satisfy the disjunctive region.
+
+### Negation (`not`)
+
+Excludes bindings for which nested pattern exists.
+
+### Optional (`try`)
+
+Allows partial enrichment without rejecting a base match.
+
+## 6) Clause Semantics
+
+- `match`: discover and constrain bindings.
+- write clauses: mutate matched/new facts.
+- stream clauses: reduce/shape output stream.
+- `reduce`: aggregate over bindings.
+- `fetch`: serialize chosen values in output structure.
+
+## 7) Queries as Functions
+
+Functions package reusable logic with explicit interfaces.
+
+- Stream return: multiple results.
+- Scalar return: single computed result.
+
+Prefer functions for repeated query fragments and domain computations.
+
+## 8) Invalid Pattern Families (Common)
+
+- Using variables downstream that are not guaranteed bound upstream.
+- Contradictory constraints in the same binding scope.
+- Role labels not valid for a relation type.
+- Logical branch variable leakage (`or`/`try`) into guaranteed context.
+- Type/value mismatch in comparisons and assignments.
+
+## 9) Glossary
+
+- **Binding**: assignment of a variable to concept/value.
+- **Pattern**: constraint expression over variables.
+- **Pipeline**: ordered stage execution.
+- **Projection**: selected and shaped output.
+- **Cardinality**: number of bindings/results at a stage.
+- **Selectivity**: how strongly a constraint shrinks candidate bindings.
+
+## Common mistakes in this section
+
+- Modeling semantic relations as plain attributes.
+- Leaving invariants in app code instead of schema constraints.
+- Assuming branch-local variables are globally available.

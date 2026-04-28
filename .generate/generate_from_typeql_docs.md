@@ -1,6 +1,98 @@
-# Generating the TypeQL Skill from the official docs
+# Generate Hardened TypeQL Skill Pack (from Official Docs)
 
-Can you read the following docs from the typeql website, and condense them all into a skill here skills\typeql_docs\skill.md. Expand this into a comprehensive skill set by keeping skills/typeql_docs/skill.md as the practical “quick core” and adding deep reference docs under skills/typeql_docs/references/ so it’s expert-grade but still usable.
+Read the official TypeDB/TypeQL docs listed below and generate a hardened, production-grade skill pack in `skills/typeql_docs/`.
+
+Your output must be better than `skills/typedb/skill.md` in:
+
+- practical usability
+- completeness of coverage
+- debugging/ops guidance
+- navigability and maintainability
+
+## Core objective
+
+Produce a two-layer documentation system:
+
+1. `skills/typeql_docs/skill.md` as a practical quick-core for daily usage
+2. deep references in `skills/typeql_docs/references/` for exhaustive lookup and implementation details
+
+The docs must be executable and operational, not abstract summaries.
+
+## Required output files
+
+Create/update these files:
+
+- `skills/typeql_docs/skill.md`
+- `skills/typeql_docs/references/01-guides.md`
+- `skills/typeql_docs/references/02-core-concepts.md`
+- `skills/typeql_docs/references/03-reference-pipelines-functions-patterns.md`
+- `skills/typeql_docs/references/04-reference-schema-statements-annotations.md`
+- `skills/typeql_docs/references/05-reference-values-expressions-keywords.md`
+- `skills/typeql_docs/references/06-operations-debugging-pitfalls-cli.md`
+- `skills/typeql_docs/references/07-clause-by-clause-syntax.md`
+- `skills/typeql_docs/references/08-pattern-cookbook.md`
+- `skills/typeql_docs/references/99-source-map.md`
+
+## Content and quality requirements
+
+### Global standards
+
+- Use clear, direct language suitable for engineers executing real tasks.
+- Include runnable TypeQL snippets throughout.
+- Prefer concrete "bad vs good" examples where ambiguity is common.
+- Flag version-sensitive behavior with concise notes.
+- Keep advice aligned to official docs; do not invent undocumented syntax.
+- Avoid hand-wavy prose and generic filler.
+
+### `skill.md` requirements (quick core)
+
+Must include:
+
+- transaction type quick reference (`schema`, `write`, `read`)
+- query/pipeline mental model and ordered skeleton
+- schema quickstart example
+- CRUD core patterns (`insert`, `put`, `update`, `delete`)
+- pattern logic (`or`, `not`, `try`) with examples
+- stream controls and aggregation basics (`select`, `require`, `distinct`, `sort`, `offset`, `limit`, `reduce`)
+- debugging checklist and optimization checklist
+- SQL-to-TypeQL translation shortcuts
+- common mistakes and fixes
+- IID/type-label identity examples
+- CLI/script conventions
+- reference index linking all deep docs
+
+### Deep reference file standards
+
+For `01` through `08`:
+
+- start with a `Mini TOC`
+- include a `How to use this file:` line near the top
+- end with `## Common mistakes in this section`
+- include practical examples with schema-aware variable/role naming
+- be precise and implementation-oriented
+
+### File-specific requirements
+
+- `01-guides.md`: workflow guidance across read/write/pipelines/debug/optimize/sql mapping
+- `02-core-concepts.md`: semantic model, constraints, variable binding, pattern semantics, invalid patterns
+- `03-reference-pipelines-functions-patterns.md`: clause-by-clause behavior, ordering, function definitions/invocations, safety rules
+- `04-reference-schema-statements-annotations.md`: schema lifecycle, statement families, annotation behavior, modeling checklists
+- `05-reference-values-expressions-keywords.md`: value types, operators, expressions, function notes, reserved keyword guidance
+- `06-operations-debugging-pitfalls-cli.md`: transaction lifecycle, debugging workflow, high-impact pitfalls, CLI/script patterns
+- `07-clause-by-clause-syntax.md`: copy-adapt templates for all major clauses
+- `08-pattern-cookbook.md`: production-ready patterns (upsert, relation linking, updates/deletes, nested fetch, pagination, identity checks, anti-cartesian patterns)
+- `99-source-map.md`: exact URL list from this document with no omissions
+
+## Refinement loop (required)
+
+After drafting:
+
+1. Compare the generated set against `skills/typedb/skill.md`.
+2. Identify missing practical capability areas.
+3. Patch gaps until the generated set is stronger overall.
+4. Ensure consistency of voice, section naming, and navigation.
+
+The final result should read as one coherent, hardened doc system.
 
 ## TypeQL Guide
 
